@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+web-build/
+expo-env.d.ts
+
+# Build outputs
+android/
+ios/
+dist/
+*.apk
+*.aab
+*.ipa
+
+# Metro bundler
+.metro-health-check*
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Debug
+npm-debug.log*
+
+# Testing
+coverage/
+__snapshots__/
+
+# Temporary files
+*.tsbuildinfo
+package-lock.json
