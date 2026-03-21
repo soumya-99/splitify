@@ -1,7 +1,7 @@
 export const Colors = {
   light: {
-    primary: '#8B5CF6',
-    primaryLight: '#C4B5FD',
+    primary: '#0EA5E9',
+    primaryLight: '#7DD3FC',
     secondary: '#10B981',
     secondaryLight: '#6EE7B7',
     accent: '#F43F5E',
@@ -20,8 +20,8 @@ export const Colors = {
     white: '#FFFFFF',
   },
   dark: {
-    primary: '#A78BFA',
-    primaryLight: '#8B5CF6',
+    primary: '#38BDF8',
+    primaryLight: '#0284C7',
     secondary: '#34D399',
     secondaryLight: '#10B981',
     accent: '#FB7185',
