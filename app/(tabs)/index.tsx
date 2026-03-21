@@ -1,98 +1,251 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import EmptyState from '@/src/components/EmptyState';
+import ExpenseCard from '@/src/components/ExpenseCard';
+import GroupCard from '@/src/components/GroupCard';
+import { SCREEN_PADDING } from '@/src/constants/layout';
+import { useTheme } from '@/src/hooks/useTheme';
+import {
+  calculateBalances,
+  getTotalExpenses,
+  getUserBalance,
+} from '@/src/services/splitCalculator';
+import { useExpenseStore } from '@/src/store/useExpenseStore';
+import { useGroupStore } from '@/src/store/useGroupStore';
+import type { Expense, Settlement } from '@/src/types';
+import { formatCurrencyPlain } from '@/src/utils/currency';
+import { useRouter } from 'expo-router';
+import { ArrowRightLeft, Users, Wallet } from 'lucide-react-native';
+import React from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
+  const router = useRouter();
+  const groups = useGroupStore((s) => s.groups);
+  const expenses = useExpenseStore((s) => s.expenses);
+  const settlements = useExpenseStore((s) => s.settlements);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Calculate overall balance
+  const totalOwed = groups.reduce((sum, group) => {
+    const groupExpenses = expenses.filter((e) => e.groupId === group.id);
+    const groupSettlements = settlements.filter((s) => s.groupId === group.id);
+    const balances = calculateBalances(groupExpenses, groupSettlements);
+    // For demo, first member is "you"
+    const firstMemberId = group.members[0]?.id;
+    if (!firstMemberId) return sum;
+    const youOwe = balances
+      .filter((b) => b.fromMemberId === firstMemberId)
+      .reduce((s, b) => s + b.amount, 0);
+    const owedToYou = balances
+      .filter((b) => b.toMemberId === firstMemberId)
+      .reduce((s, b) => s + b.amount, 0);
+    return sum + (owedToYou - youOwe);
+  }, 0);
+
+  type FeedItem = (Expense & { _type: 'expense' }) | (Settlement & { _type: 'settlement' });
+
+  const recentActivity: FeedItem[] = [
+    ...expenses.map((e) => ({ ...e, _type: 'expense' as const })),
+    ...settlements.map((s) => ({ ...s, _type: 'settlement' as const })),
+  ]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
+
+  if (groups.length === 0) {
+    return (
+      <View
+        style={[
+          styles.emptyContainer,
+          { backgroundColor: colors.background, paddingTop: insets.top },
+        ]}
+      >
+        <EmptyState
+          icon={Users}
+          title="Welcome to Splitify!"
+          description="Create your first group to start splitting expenses with friends."
+          actionTitle="Create Group"
+          onAction={() => router.push('/modals/create-group')}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <FlatList<FeedItem>
+        data={recentActivity}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={[styles.content, { paddingTop: insets.top + 16 }]}
+        ListHeaderComponent={
+          <>
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={[styles.appTitle, { color: colors.text }]}>Splitify</Text>
+              <Wallet size={24} color={colors.primary} />
+            </View>
+
+            {/* Balance Card */}
+            <View style={[styles.balanceCard, { backgroundColor: colors.primary }]}>
+              <Text style={styles.balanceLabel}>Overall Balance</Text>
+              <Text style={styles.balanceAmount}>
+                {totalOwed >= 0 ? '+' : '−'}₹{Math.abs(totalOwed).toFixed(2)}
+              </Text>
+              <Text style={styles.balanceSub}>
+                Across {groups.length} group{groups.length !== 1 ? 's' : ''}
+              </Text>
+            </View>
+
+            {/* Groups Preview */}
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Groups</Text>
+            <FlatList
+              data={groups.slice(0, 5)}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyExtractor={(item) => item.id}
+              contentContainerStyle={styles.groupsRow}
+              renderItem={({ item }) => {
+                const groupExpenses = expenses.filter((e) => e.groupId === item.id);
+                const groupSettlements = settlements.filter((s) => s.groupId === item.id);
+                const firstMemberId = item.members[0]?.id;
+                const balances = calculateBalances(groupExpenses, groupSettlements);
+                const userBalance = firstMemberId ? getUserBalance(firstMemberId, balances) : 0;
+                const total = getTotalExpenses(groupExpenses);
+
+                return (
+                  <View style={styles.groupCardWrap}>
+                    <GroupCard
+                      group={item}
+                      totalExpenses={total}
+                      userBalance={userBalance}
+                      onPress={() => router.push(`/group/${item.id}`)}
+                    />
+                  </View>
+                );
+              }}
+            />
+
+            {recentActivity.length > 0 && (
+              <Text style={[styles.sectionTitle, { color: colors.text, marginTop: 24 }]}>
+                Recent Activity
+              </Text>
+            )}
+          </>
+        }
+        renderItem={({ item }) => {
+          const group = groups.find((g) => g.id === item.groupId);
+          if (item._type === 'settlement') {
+            const from = group?.members.find((m) => m.id === item.fromMemberId);
+            const to = group?.members.find((m) => m.id === item.toMemberId);
+            return (
+              <View
+                style={[
+                  styles.expenseWrap,
+                  {
+                    backgroundColor: colors.surface,
+                    padding: 16,
+                    borderRadius: 16,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: 12,
+                  },
+                ]}
+              >
+                <View
+                  style={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: colors.primaryLight + '20',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <ArrowRightLeft size={20} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: 16, fontWeight: '500', color: colors.text }}>
+                    {from?.name} paid {to?.name}
+                  </Text>
+                  <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
+                    {group?.name} • {new Date(item.createdAt).toLocaleDateString()}
+                  </Text>
+                </View>
+                <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primary }}>
+                  {formatCurrencyPlain(item.amount, group?.currency ?? '₹')}
+                </Text>
+              </View>
+            );
+          }
+          return (
+            <View style={styles.expenseWrap}>
+              <ExpenseCard
+                expense={item}
+                members={group?.members ?? []}
+                currency={group?.currency ?? '₹'}
+              />
+            </View>
+          );
+        }}
+        ListFooterComponent={<View style={{ height: 120 }} />}
+      />
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  container: {
+    flex: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+  },
+  content: {
+    paddingHorizontal: SCREEN_PADDING,
+  },
+  header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 20,
   },
-  stepContainer: {
-    gap: 8,
+  appTitle: {
+    fontSize: 30,
+    fontWeight: '700',
+  },
+  balanceCard: {
+    borderRadius: 20,
+    padding: 24,
+    marginBottom: 24,
+  },
+  balanceLabel: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: 'rgba(255,255,255,0.8)',
+  },
+  balanceAmount: {
+    fontSize: 36,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  balanceSub: {
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.7)',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    marginBottom: 12,
+  },
+  groupsRow: {
+    gap: 12,
+  },
+  groupCardWrap: {
+    width: 260,
+  },
+  expenseWrap: {
     marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
   },
 });

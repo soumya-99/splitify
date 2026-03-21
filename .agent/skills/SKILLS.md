@@ -9,6 +9,7 @@ This document outlines specialized skills the agent can leverage when working on
 **Description**: Create new React Native components following Splitify conventions.
 
 ### Steps
+
 1. Determine if the component is **shared** (`src/components/`) or **screen-specific** (`src/screens/<Screen>/components/`).
 2. Create the component file using **PascalCase** naming.
 3. Define a `Props` interface at the top of the file.
@@ -19,6 +20,7 @@ This document outlines specialized skills the agent can leverage when working on
 8. Export the component as the default export.
 
 ### Template
+
 ```tsx
 import React from 'react';
 import { View, Text, Pressable, StyleSheet } from 'react-native';
@@ -68,6 +70,7 @@ export default ComponentName;
 **Description**: Create a new screen with proper Expo Router integration.
 
 ### Steps
+
 1. Determine the screen type:
    - **Tab screen** → Create file in `app/(tabs)/`.
    - **Stack screen** → Create file in the appropriate `app/` subdirectory (e.g., `app/group/`).
@@ -86,6 +89,7 @@ export default ComponentName;
 **Description**: Create a new Zustand store following Splitify patterns.
 
 ### Steps
+
 1. Create the store file in `src/store/` with the `use<Domain>Store.ts` naming convention.
 2. Define the state interface and actions interface separately.
 3. Use the `create` function from Zustand.
@@ -93,6 +97,7 @@ export default ComponentName;
 5. Keep the store focused on a single domain.
 
 ### Template
+
 ```tsx
 import { create } from 'zustand';
 
@@ -112,10 +117,8 @@ type GroupStore = GroupState & GroupActions;
 export const useGroupStore = create<GroupStore>((set) => ({
   groups: [],
   loading: false,
-  addGroup: (group) =>
-    set((state) => ({ groups: [...state.groups, group] })),
-  removeGroup: (id) =>
-    set((state) => ({ groups: state.groups.filter((g) => g.id !== id) })),
+  addGroup: (group) => set((state) => ({ groups: [...state.groups, group] })),
+  removeGroup: (id) => set((state) => ({ groups: state.groups.filter((g) => g.id !== id) })),
   loadGroups: async () => {
     set({ loading: true });
     // Load from local DB
@@ -131,11 +134,13 @@ export const useGroupStore = create<GroupStore>((set) => ({
 **Description**: Implement and debug expense splitting algorithms.
 
 ### Split Types
+
 1. **Equal Split** — Divide the total equally among all selected participants.
 2. **Exact Amounts** — Each participant's share is manually specified.
 3. **Percentage Split** — Each participant pays a percentage of the total.
 
 ### Debt Simplification Algorithm
+
 - Compute net balance for each member (total paid − total owed).
 - Use a greedy approach: match the person with the highest positive balance to the person with the most negative balance.
 - Minimize the total number of transactions.
@@ -147,11 +152,13 @@ export const useGroupStore = create<GroupStore>((set) => ({
 **Description**: Implement group data sharing without a server.
 
 ### Methods
+
 1. **JSON Export/Import**: Serialize group data (members, expenses, settlements) to a JSON file using `expo-file-system`. Import parses and merges.
 2. **QR Code**: Encode a compact group invitation or small data payload as a QR code.
 3. **Native Share Sheet**: Use **expo-sharing** to share files via WhatsApp, email, etc.
 
 ### Data Schema for Sharing
+
 ```json
 {
   "version": "1.0",
@@ -175,8 +182,9 @@ export const useGroupStore = create<GroupStore>((set) => ({
 **Description**: Manage the app's light/dark theme system.
 
 ### Implementation
+
 - Use React Context (`ThemeContext`) to provide colors, spacing, typography.
 - `useTheme()` hook returns the active theme object.
 - Support three modes: `light`, `dark`, `system` (follows device setting via `useColorScheme` from `react-native`).
 - All components reference theme tokens — never hardcode colors.
-- Persist theme preference using `@react-native-async-storage/async-storage`.
+- Persist theme preference using `react-native-mmkv`.
