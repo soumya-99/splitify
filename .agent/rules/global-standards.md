@@ -1,252 +1,162 @@
 # Global Standards for Splitify
 
+> **Rule**: This file must remain under **12,000 characters**. Move detailed specs to `DESIGN.md` or `SKILLS.md`.
+
 ## Project Overview
 
-**Splitify** is a fully offline expense splitter app with sharing capabilities, built with **Expo** (React Native + TypeScript) targeting Android and iOS.
+**Splitify** — Fully offline expense splitter with sharing. Built with **Expo** (React Native + TypeScript) for Android & iOS.
 
 ---
 
 ## Tech Stack
 
-| Layer            | Technology                                        |
-| ---------------- | ------------------------------------------------- |
-| Framework        | **Expo** (managed workflow, SDK 52+)              |
-| Language         | TypeScript (strict mode)                          |
-| Navigation       | **Expo Router** (file-based) + **Bottom Tabs**    |
-| State Management | Zustand (lightweight, no boilerplate)              |
-| Local Database   | **expo-sqlite** (fully offline)                    |
-| Icons            | lucide-react-native                               |
-| Styling          | StyleSheet API (React Native) with a theme system  |
-| Sharing          | JSON export/import + QR code + expo-sharing        |
-| Animations       | React Native Reanimated + Gesture Handler          |
-| Fonts            | **expo-font** (Inter / Poppins)                    |
-| Haptics          | expo-haptics                                       |
-| Testing          | Jest + React Native Testing Library                |
+| Layer          | Technology                                   |
+| -------------- | -------------------------------------------- |
+| Framework      | Expo (managed workflow, SDK 52+)             |
+| Language       | TypeScript (strict mode)                     |
+| Navigation     | Expo Router (file-based) + Bottom Tabs       |
+| State          | Zustand                                      |
+| Database       | expo-sqlite                                  |
+| Icons          | lucide-react-native                          |
+| Styling        | StyleSheet API + theme system                |
+| Sharing        | expo-sharing + JSON export/import + QR       |
+| Animations     | React Native Reanimated + Gesture Handler    |
+| Fonts          | expo-font (Inter / Poppins)                  |
+| Haptics        | expo-haptics                                 |
+| Testing        | Jest + React Native Testing Library          |
 
 ---
 
-## Architecture & Folder Structure
-
-This project uses **Expo Router** (file-based routing). The `app/` directory defines the navigation structure.
+## Folder Structure (Expo Router)
 
 ```
-├── app/                        # Expo Router — file-based navigation
+├── app/                        # File-based navigation
 │   ├── _layout.tsx             # Root layout (providers, fonts, splash)
 │   ├── index.tsx               # Entry redirect → (tabs)
-│   ├── (tabs)/                 # Bottom Tab Navigator group
-│   │   ├── _layout.tsx         # Tab bar configuration & styling
-│   │   ├── index.tsx           # Home / Dashboard tab
-│   │   ├── groups.tsx          # Groups list tab
-│   │   ├── activity.tsx        # Recent activity tab
-│   │   └── settings.tsx        # Settings tab
-│   ├── group/                  # Stack screens for group details
-│   │   ├── [id].tsx            # Group detail screen (dynamic route)
-│   │   ├── add-expense.tsx     # Add expense screen
-│   │   └── settle-up.tsx       # Settle up screen
+│   ├── (tabs)/                 # Bottom Tab Navigator
+│   │   ├── _layout.tsx         # Tab bar config & styling
+│   │   ├── index.tsx           # Home / Dashboard
+│   │   ├── groups.tsx          # Groups list
+│   │   ├── activity.tsx        # Recent activity
+│   │   └── settings.tsx        # Settings
+│   ├── group/                  # Group stack screens
+│   │   ├── [id].tsx            # Group detail (dynamic)
+│   │   ├── add-expense.tsx     # Add expense
+│   │   └── settle-up.tsx       # Settle up
 │   └── modals/                 # Modal screens
-│       ├── create-group.tsx    # Create new group modal
-│       └── import-group.tsx    # Import group from JSON/QR modal
+│       ├── create-group.tsx
+│       └── import-group.tsx
 ├── src/
-│   ├── components/             # Shared, reusable UI components
-│   │   ├── Button.tsx
-│   │   ├── Card.tsx
-│   │   ├── Avatar.tsx
-│   │   ├── BottomSheet.tsx
-│   │   ├── TabBar.tsx          # Custom bottom tab bar component
-│   │   ├── EmptyState.tsx
-│   │   └── ...
-│   ├── theme/                  # Design tokens & theme configuration
-│   │   ├── colors.ts           # Color palette (light + dark)
-│   │   ├── typography.ts       # Font sizes, weights, families
-│   │   ├── spacing.ts          # Spacing scale
-│   │   ├── shadows.ts          # Shadow presets
-│   │   └── index.ts            # Unified theme export
-│   ├── store/                  # Zustand stores
-│   │   ├── useGroupStore.ts
-│   │   ├── useExpenseStore.ts
-│   │   └── useSettingsStore.ts
-│   ├── database/               # expo-sqlite schema, queries, migrations
-│   │   ├── schema.ts
-│   │   ├── queries/
-│   │   └── migrations/
-│   ├── services/               # Business logic & utilities
-│   │   ├── splitCalculator.ts  # Core splitting algorithms
-│   │   ├── shareService.ts     # Export/import/share logic (expo-sharing)
-│   │   └── currencyFormatter.ts
-│   ├── hooks/                  # Shared custom hooks
-│   │   ├── useTheme.ts
-│   │   ├── useDatabase.ts
-│   │   └── ...
-│   ├── types/                  # Global TypeScript types & interfaces
-│   │   ├── expense.ts
-│   │   ├── group.ts
-│   │   ├── member.ts
-│   │   ├── navigation.ts       # Route param types
-│   │   └── index.ts
-│   ├── utils/                  # Pure utility functions
-│   │   ├── id.ts               # UUID generation
-│   │   ├── date.ts             # Date formatting
-│   │   └── validation.ts
-│   └── constants/              # App-wide constants
-│       └── layout.ts           # Tab bar height, screen padding, etc.
-├── assets/                     # Static assets (Expo convention)
-│   ├── fonts/
-│   └── images/
-└── app.json                    # Expo configuration
+│   ├── components/             # Shared UI (Button, Card, Avatar, TabBar, etc.)
+│   ├── theme/                  # colors.ts, typography.ts, spacing.ts, shadows.ts
+│   ├── store/                  # Zustand stores (useGroupStore, useExpenseStore, useSettingsStore)
+│   ├── database/               # expo-sqlite schema, queries/, migrations/
+│   ├── services/               # splitCalculator.ts, shareService.ts, currencyFormatter.ts
+│   ├── hooks/                  # useTheme, useDatabase, etc.
+│   ├── types/                  # expense.ts, group.ts, member.ts, navigation.ts
+│   ├── utils/                  # id.ts, date.ts, validation.ts
+│   └── constants/              # layout.ts (tab bar height, padding, etc.)
+├── assets/                     # fonts/, images/
+└── app.json
 ```
 
-### Bottom Tab Navigation
+---
 
-The app uses a **custom-styled bottom tab bar** as the primary navigation:
+## Bottom Tabs
 
-| Tab       | Icon (lucide)    | Screen           | Description                  |
-| --------- | ---------------- | ---------------- | ---------------------------- |
-| Home      | `Home`           | `(tabs)/index`   | Dashboard with overview      |
-| Groups    | `Users`          | `(tabs)/groups`  | List of all expense groups   |
-| Activity  | `Activity`       | `(tabs)/activity`| Recent expenses & settlements|
-| Settings  | `Settings`       | `(tabs)/settings`| Theme, currency, data mgmt   |
+| Tab      | Icon (lucide) | Route            |
+| -------- | ------------- | ---------------- |
+| Home     | `Home`        | `(tabs)/index`   |
+| Groups   | `Users`       | `(tabs)/groups`  |
+| Activity | `Activity`    | `(tabs)/activity`|
+| Settings | `Settings`    | `(tabs)/settings`|
 
-**Tab bar styling rules:**
-- Use a **custom tab bar component** (`src/components/TabBar.tsx`) for full design control.
-- Active tab uses `primary` color with a subtle background pill/indicator.
-- Inactive tabs use `textSecondary` color.
-- Add a **floating action button (FAB)** above the tab bar for quick "Add Expense" action.
-- Apply `expo-haptics` feedback on tab press.
-- Tab bar should respect the safe area (use `useSafeAreaInsets`).
-- Apply `shadow.md` to the tab bar for elevation.
+- Custom tab bar component (`src/components/TabBar.tsx`).
+- Active: `primary` color + pill indicator. Inactive: `textSecondary`.
+- FAB (floating action button) above tab bar for "Add Expense".
+- Haptic feedback on tab press. Respect safe area insets.
 
 ---
 
 ## Coding Standards
 
 ### TypeScript
-- Use **strict mode** (`"strict": true` in `tsconfig.json`).
-- All components must be typed with explicit `Props` interfaces.
-- Avoid `any` — use `unknown` when the type is truly unknown, then narrow.
-- Use **type** for object shapes and **interface** for component props (consistency).
-- Export types from `src/types/` for shared usage.
+- Strict mode enabled. No `any` — use `unknown` + narrowing.
+- `type` for object shapes, `interface` for component props.
+- Export shared types from `src/types/`.
 
 ### Components
-- Use **functional components** with hooks exclusively — no class components.
-- Each component file exports **one default component**.
-- Screen components live in `src/screens/<ScreenName>/index.tsx`.
-- Shared components live in `src/components/`.
-- Screen-specific components live in `src/screens/<ScreenName>/components/`.
-- Keep components **under 200 lines**. Extract logic into hooks or sub-components.
+- Functional components only. One default export per file.
+- **Never use `TouchableOpacity`**. Use `Pressable` or `RectButton` (gesture-handler).
+- `Pressable` style: `({ pressed }) => [...]` for press feedback.
+- Screen components in Expo Router route files (`app/`). Shared components in `src/components/`.
+- Max **200 lines** per component file.
 
-### Naming Conventions
-| Item               | Convention         | Example                  |
-| ------------------ | ------------------ | ------------------------ |
-| Component files    | PascalCase         | `ExpenseCard.tsx`        |
-| Hook files         | camelCase (use prefix) | `useGroupStore.ts`   |
-| Utility files      | camelCase          | `splitCalculator.ts`     |
-| Type files         | camelCase          | `expense.ts`             |
-| Constants          | UPPER_SNAKE_CASE   | `MAX_GROUP_MEMBERS`      |
-| Component props    | PascalCase + Props | `ExpenseCardProps`       |
-| Screens            | PascalCase + Screen| `AddExpenseScreen`       |
+### Naming
+
+| Item            | Convention          | Example             |
+| --------------- | ------------------- | ------------------- |
+| Components      | PascalCase          | `ExpenseCard.tsx`   |
+| Hooks           | camelCase + `use`   | `useGroupStore.ts`  |
+| Utils/Services  | camelCase           | `splitCalculator.ts`|
+| Types           | camelCase           | `expense.ts`        |
+| Constants       | UPPER_SNAKE_CASE    | `MAX_GROUP_MEMBERS` |
+| Props           | PascalCase + Props  | `ExpenseCardProps`  |
 
 ### Styling
-- Use React Native `StyleSheet.create()` — no inline styles in JSX.
-- Reference theme tokens (colors, spacing, typography) from `src/theme/`.
-- Support **light and dark mode** via theme context.
-- Avoid magic numbers — use spacing and sizing tokens.
+- `StyleSheet.create()` only — no inline styles.
+- Reference theme tokens from `src/theme/`. Support light + dark mode.
+- No magic numbers — use spacing/sizing tokens.
 
-### State Management
-- Use **Zustand** for global state (groups, expenses, settings).
-- Keep stores small and focused — one store per domain.
-- Database is the source of truth; Zustand syncs from the DB.
-- Use React hooks (`useState`, `useReducer`) for local component state.
+### State
+- Zustand for global state. One store per domain.
+- DB is source of truth; Zustand syncs from it.
+- `useState`/`useReducer` for local component state.
 
 ### Data & Offline
-- All data must be stored **locally on-device** (no server required).
-- Use **expo-sqlite** for all structured data storage.
-- Support JSON export/import for data sharing between users.
-- Generate unique IDs client-side (UUID v4 via `expo-crypto`).
+- All data stored locally via **expo-sqlite**. No server.
+- JSON export/import for sharing. UUIDs via `expo-crypto`.
 
 ---
 
-## Design & Theme Standards
+## Design Tokens (Summary)
 
-### Color Palette (Colorful Theme)
-The app uses a **vibrant, gradient-rich** palette:
+> Full specs in `DESIGN.md`.
 
-| Token            | Light Mode     | Dark Mode      | Usage                     |
-| ---------------- | -------------- | -------------- | ------------------------- |
-| `primary`        | `#6C5CE7`      | `#A29BFE`      | Primary actions, headers  |
-| `secondary`      | `#00B894`      | `#55EFC4`      | Success, settlements      |
-| `accent`         | `#FD79A8`      | `#FF7675`      | Highlights, badges        |
-| `warning`        | `#FDCB6E`      | `#FFEAA7`      | Warnings, pending items   |
-| `info`           | `#74B9FF`      | `#81ECEC`      | Info indicators           |
-| `background`     | `#F8F9FE`      | `#1A1A2E`      | Screen backgrounds        |
-| `surface`        | `#FFFFFF`      | `#16213E`      | Cards, sheets             |
-| `text`           | `#2D3436`      | `#DFE6E9`      | Primary text              |
-| `textSecondary`  | `#636E72`      | `#B2BEC3`      | Muted / secondary text    |
-| `border`         | `#E0E0E0`      | `#2C3E50`      | Borders, dividers         |
-| `danger`         | `#E17055`      | `#FF6B6B`      | Destructive actions       |
+| Token          | Light       | Dark        |
+| -------------- | ----------- | ----------- |
+| `primary`      | `#6C5CE7`   | `#A29BFE`   |
+| `secondary`    | `#00B894`   | `#55EFC4`   |
+| `accent`       | `#FD79A8`   | `#FF7675`   |
+| `warning`      | `#FDCB6E`   | `#FFEAA7`   |
+| `info`         | `#74B9FF`   | `#81ECEC`   |
+| `background`   | `#F8F9FE`   | `#1A1A2E`   |
+| `surface`      | `#FFFFFF`   | `#16213E`   |
+| `text`         | `#2D3436`   | `#DFE6E9`   |
+| `textSecondary`| `#636E72`   | `#B2BEC3`   |
+| `border`       | `#E0E0E0`   | `#2C3E50`   |
+| `danger`       | `#E17055`   | `#FF6B6B`   |
 
-### Icons
-- Use **lucide-react-native** as the sole icon library.
-- Icon size defaults: `20` for inline, `24` for buttons/nav, `48` for empty states.
-- Always pass color from theme — never hardcode icon colors.
-
-### Typography
-- Use a custom font (e.g., **Inter** or **Poppins**) loaded via **expo-font** + `useFonts` hook in the root layout.
-- Define a typography scale: `xs (10)`, `sm (12)`, `base (14)`, `md (16)`, `lg (20)`, `xl (24)`, `2xl (30)`, `3xl (36)`.
-- Use `fontWeight` tokens: `regular (400)`, `medium (500)`, `semibold (600)`, `bold (700)`.
-
-### Spacing
-- Follow a **4px base** spacing scale: `4, 8, 12, 16, 20, 24, 32, 40, 48, 64`.
-- Use named tokens: `xs (4)`, `sm (8)`, `md (16)`, `lg (24)`, `xl (32)`, `2xl (48)`.
-
-### Shadows & Elevation
-- Define shadow presets: `none`, `sm`, `md`, `lg`.
-- Card components use `shadow.sm` by default.
-- Floating action buttons use `shadow.lg`.
-
-### Animations
-- Use **React Native Reanimated** for performant animations.
-- Apply subtle entrance animations on lists (fade + slide-up).
-- Use spring physics for interactive gestures (swipe-to-delete, drag).
-- Keep animation durations between **200ms – 400ms** for UI transitions.
+- Icons: lucide-react-native. Sizes: `20` inline, `24` buttons, `48` empty states.
+- Typography: Inter/Poppins via expo-font. Scale: `xs(10)` `sm(12)` `base(14)` `md(16)` `lg(20)` `xl(24)` `2xl(30)` `3xl(36)`.
+- Spacing (4px base): `xs(4)` `sm(8)` `md(16)` `lg(24)` `xl(32)` `2xl(48)`.
+- Shadows: `none`, `sm`, `md`, `lg`. Cards use `sm`, FAB uses `lg`.
+- Animations: Reanimated. Durations: 200–400ms. Spring for gestures.
 
 ---
 
-## App Features Summary
+## Features
 
-### Core Features
-1. **Groups** — Create groups with members, each group tracks shared expenses.
-2. **Expenses** — Add expenses with payer, split type (equal, exact, percentage), and participants.
-3. **Balances** — View who owes whom within a group (simplified debt algorithm).
-4. **Settle Up** — Record payments between members to settle debts.
-5. **Dashboard** — Overview of all groups, total balances, and recent activity.
+**Core**: Groups, Expenses (equal/exact/percentage split), Balances (simplified debts), Settle Up, Dashboard.
 
-### Sharing Features (No Server)
-1. **Export Group as JSON** — Serialize a group's data as a JSON file.
-2. **Import Group from JSON** — Import and merge a group from a shared file.
-3. **QR Code Sharing** — Generate a QR code containing group invite/data.
-4. **Share via System Share Sheet** — Use **expo-sharing** to send data via any app.
+**Sharing (offline)**: JSON export/import, QR code, expo-sharing via system share sheet.
 
-### Settings
-1. **Default Currency** — Choose a default currency for new groups.
-2. **Theme Toggle** — Switch between light, dark, and system theme.
-3. **Data Management** — Export all data / Clear all data.
+**Settings**: Default currency, theme toggle (light/dark/system), data export/clear.
 
 ---
 
-## Error Handling
-- Wrap async operations in try-catch with user-friendly error messages.
-- Use a global error boundary component (`ErrorBoundary.tsx`).
-- Show toast notifications for transient errors (network, share failures).
-- Log errors to console in dev; suppress in production.
+## Quality
 
-## Performance
-- Use `React.memo` for list item components.
-- Use `FlatList` (not `ScrollView`) for all lists.
-- Lazy-load screens with `React.lazy` or React Navigation lazy loading.
-- Minimize re-renders by keeping Zustand selectors granular.
-
-## Accessibility
-- All touchable components must have `accessibilityLabel`.
-- Support dynamic font scaling.
-- Ensure color contrast ratios meet WCAG AA standards.
-- Test with screen readers (TalkBack / VoiceOver).
+- **Errors**: try-catch with user-friendly messages. Global `ErrorBoundary`. Toast notifications.
+- **Performance**: `React.memo` for list items. `FlatList` always. Lazy-load screens. Granular Zustand selectors.
+- **Accessibility**: `accessibilityLabel` on all `Pressable`/`RectButton`. Dynamic font scaling. WCAG AA contrast. Screen reader testing.

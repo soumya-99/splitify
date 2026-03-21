@@ -21,7 +21,7 @@ This document outlines specialized skills the agent can leverage when working on
 ### Template
 ```tsx
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
 import { IconName } from 'lucide-react-native';
 import { useTheme } from '@/hooks/useTheme';
 
@@ -34,13 +34,16 @@ const ComponentName: React.FC<ComponentNameProps> = ({ title, onPress }) => {
   const { colors, spacing } = useTheme();
 
   return (
-    <TouchableOpacity
-      style={[styles.container, { backgroundColor: colors.surface }]}
+    <Pressable
+      style={({ pressed }) => [
+        styles.container,
+        { backgroundColor: colors.surface, opacity: pressed ? 0.7 : 1 },
+      ]}
       onPress={onPress}
       accessibilityLabel={title}
     >
       <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

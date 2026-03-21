@@ -21,7 +21,9 @@ Follow these steps to perform a thorough code review on the Splitify codebase.
 ### 3. Check Component Standards
 - Verify functional components only (no class components).
 - Ensure components are **under 200 lines**.
-- Check for proper `accessibilityLabel` on all touchable elements.
+- **Verify `TouchableOpacity` is NOT used anywhere**. Must use `Pressable` or `RectButton` instead.
+- Check `Pressable` components use `({ pressed }) => [...]` style callback for press feedback.
+- Check for proper `accessibilityLabel` on all `Pressable` / `RectButton` elements.
 - Verify styles use `StyleSheet.create()` — no inline styles.
 - Confirm theme tokens are used (no hardcoded colors, spacing, or font sizes).
 
