@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet, type ViewStyle, type TextStyle } from 'react-native';
 import { useTheme } from '@/src/hooks/useTheme';
 import type { LucideIcon } from 'lucide-react-native';
+import * as Haptics from 'expo-haptics';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'danger' | 'ghost';
 
@@ -69,7 +70,10 @@ const Button: React.FC<ButtonProps> = ({
         disabled && styles.disabled,
         { opacity: pressed && !disabled ? 0.7 : 1 },
       ]}
-      onPress={onPress}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       disabled={disabled}
       accessibilityLabel={title}
       accessibilityRole="button"

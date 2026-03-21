@@ -1,10 +1,10 @@
 import Card from '@/src/components/Card';
 import { SCREEN_PADDING } from '@/src/constants/layout';
 import { useTheme } from '@/src/hooks/useTheme';
-import { importGroupFromSpt } from '@/src/services/shareService';
+import { importGroupFromSpt, exportAllGroupsToZip } from '@/src/services/shareService';
 import { useExpenseStore } from '@/src/store/useExpenseStore';
 import { useGroupStore } from '@/src/store/useGroupStore';
-import { ChevronRight, Moon, Sun, Trash2, Upload } from 'lucide-react-native';
+import { ChevronRight, Moon, Sun, Trash2, Upload, Download } from 'lucide-react-native';
 import React from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -93,6 +93,22 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleExportAll = async () => {
+    try {
+      if (groupStore.groups.length === 0) {
+        Alert.alert('Empty', 'You have no groups to export.');
+        return;
+      }
+      await exportAllGroupsToZip(
+        groupStore.groups,
+        expenseStore.expenses,
+        expenseStore.settlements
+      );
+    } catch {
+      Alert.alert('Error', 'Failed to generate backup.');
+    }
+  };
+
   return (
     <View
       style={[
@@ -127,6 +143,12 @@ export default function SettingsScreen() {
           title="Import Group"
           subtitle="Load a .spt Splitify file"
           onPress={handleImport}
+        />
+        <SettingsRow
+          icon={<Download size={22} color={colors.secondary} />}
+          title="Export All Groups"
+          subtitle="Create a ZIP backup of all groups"
+          onPress={handleExportAll}
         />
         <SettingsRow
           icon={<Trash2 size={22} color={colors.danger} />}

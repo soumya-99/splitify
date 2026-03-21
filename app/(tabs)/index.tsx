@@ -10,12 +10,22 @@ import {
 } from '@/src/services/splitCalculator';
 import { useExpenseStore } from '@/src/store/useExpenseStore';
 import { useGroupStore } from '@/src/store/useGroupStore';
-import type { Expense, Settlement } from '@/src/types';
+import type { Expense, Group, Settlement } from '@/src/types';
 import { formatCurrencyPlain } from '@/src/utils/currency';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { ArrowRightLeft, Users, Wallet } from 'lucide-react-native';
 import React from 'react';
-import { FlatList, StyleSheet, Text, View } from 'react-native';
+import {
+  ActionSheetIOS,
+  Alert,
+  FlatList,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
@@ -25,6 +35,53 @@ export default function HomeScreen() {
   const groups = useGroupStore((s) => s.groups);
   const expenses = useExpenseStore((s) => s.expenses);
   const settlements = useExpenseStore((s) => s.settlements);
+  const removeGroup = useGroupStore((s) => s.removeGroup);
+
+  const handleLongPressGroup = (group: Group) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const options = ['Edit Group', 'Delete Group', 'Cancel'];
+    const destructiveButtonIndex = 1;
+    const cancelButtonIndex = 2;
+
+    const editGroup = () => router.push(`/modals/edit-group?groupId=${group.id}`);
+    const deleteGroup = () => {
+      Alert.alert(
+        'Delete Group',
+        `Are you sure you want to delete "${group.name}"? This cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => removeGroup(group.id),
+          },
+        ]
+      );
+    };
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex,
+          destructiveButtonIndex,
+          title: group.name,
+          message: 'Manage your group',
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) editGroup();
+          else if (buttonIndex === destructiveButtonIndex) deleteGroup();
+        }
+      );
+    } else {
+      Alert.alert(group.name, 'Manage your group', [
+        { text: 'Edit Group', onPress: editGroup },
+        { text: 'Delete Group', style: 'destructive', onPress: deleteGroup },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
 
   // Calculate overall balance
   const totalOwed = groups.reduce((sum, group) => {
@@ -82,7 +139,12 @@ export default function HomeScreen() {
             {/* Header */}
             <View style={styles.header}>
               <Text style={[styles.appTitle, { color: colors.text }]}>Splitify</Text>
-              <Wallet size={24} color={colors.primary} />
+              <Pressable
+                onPress={() => router.push('/(tabs)/activity')}
+                style={({ pressed }) => [{ opacity: pressed ? 0.7 : 1 }]}
+              >
+                <Wallet size={24} color={colors.primary} />
+              </Pressable>
             </View>
 
             {/* Balance Card */}
@@ -119,6 +181,7 @@ export default function HomeScreen() {
                       totalExpenses={total}
                       userBalance={userBalance}
                       onPress={() => router.push(`/group/${item.id}`)}
+                      onLongPress={() => handleLongPressGroup(item)}
                     />
                   </View>
                 );

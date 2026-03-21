@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
+import { ActionSheetIOS, Alert, Platform, View, Text, FlatList, StyleSheet } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Users } from 'lucide-react-native';
@@ -14,14 +15,62 @@ import {
 import GroupCard from '@/src/components/GroupCard';
 import EmptyState from '@/src/components/EmptyState';
 import { SCREEN_PADDING } from '@/src/constants/layout';
+import type { Group } from '@/src/types';
 
 export default function GroupsScreen() {
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const router = useRouter();
   const groups = useGroupStore((s) => s.groups);
+  const removeGroup = useGroupStore((s) => s.removeGroup);
   const expenses = useExpenseStore((s) => s.expenses);
   const settlements = useExpenseStore((s) => s.settlements);
+
+  const handleLongPressGroup = (group: Group) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+
+    const options = ['Edit Group', 'Delete Group', 'Cancel'];
+    const destructiveButtonIndex = 1;
+    const cancelButtonIndex = 2;
+
+    const editGroup = () => router.push(`/modals/edit-group?groupId=${group.id}`);
+    const deleteGroup = () => {
+      Alert.alert(
+        'Delete Group',
+        `Are you sure you want to delete "${group.name}"? This cannot be undone.`,
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Delete',
+            style: 'destructive',
+            onPress: () => removeGroup(group.id),
+          },
+        ]
+      );
+    };
+
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options,
+          cancelButtonIndex,
+          destructiveButtonIndex,
+          title: group.name,
+          message: 'Manage your group',
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 0) editGroup();
+          else if (buttonIndex === destructiveButtonIndex) deleteGroup();
+        }
+      );
+    } else {
+      Alert.alert(group.name, 'Manage your group', [
+        { text: 'Edit Group', onPress: editGroup },
+        { text: 'Delete Group', style: 'destructive', onPress: deleteGroup },
+        { text: 'Cancel', style: 'cancel' },
+      ]);
+    }
+  };
 
   if (groups.length === 0) {
     return (
@@ -70,6 +119,7 @@ export default function GroupsScreen() {
                 totalExpenses={total}
                 userBalance={userBalance}
                 onPress={() => router.push(`/group/${item.id}`)}
+                onLongPress={() => handleLongPressGroup(item)}
               />
             </View>
           );

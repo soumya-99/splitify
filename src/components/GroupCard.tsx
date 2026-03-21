@@ -11,9 +11,16 @@ interface GroupCardProps {
   totalExpenses: number;
   userBalance: number;
   onPress: () => void;
+  onLongPress?: () => void;
 }
 
-const GroupCard: React.FC<GroupCardProps> = ({ group, totalExpenses, userBalance, onPress }) => {
+const GroupCard: React.FC<GroupCardProps> = ({
+  group,
+  totalExpenses,
+  userBalance,
+  onPress,
+  onLongPress,
+}) => {
   const { colors } = useTheme();
 
   const balanceColor =
@@ -28,6 +35,8 @@ const GroupCard: React.FC<GroupCardProps> = ({ group, totalExpenses, userBalance
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
+      delayLongPress={200}
       style={({ pressed }) => [
         { opacity: pressed ? 0.95 : 1, transform: [{ scale: pressed ? 0.98 : 1 }] },
       ]}

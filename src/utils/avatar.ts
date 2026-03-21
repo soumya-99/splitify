@@ -1,25 +1,16 @@
-const AVATAR_COLORS = [
-  '#6C5CE7',
-  '#00B894',
-  '#FD79A8',
-  '#FDCB6E',
-  '#74B9FF',
-  '#E17055',
-  '#A29BFE',
-  '#55EFC4',
-  '#FF7675',
-  '#81ECEC',
-  '#FAB1C8',
-  '#FFEAA7',
-];
+import { Hct, hexFromArgb } from '@material/material-color-utilities';
 
 export function getAvatarColor(name: string): string {
   let hash = 0;
   for (let i = 0; i < name.length; i++) {
     hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const index = Math.abs(hash) % AVATAR_COLORS.length;
-  return AVATAR_COLORS[index];
+  const hue = Math.abs(hash) % 360;
+
+  // HCT arguments (Hue, Chroma, Tone).
+  // Tone 75 and Chroma 45 produces a nice Material You vibrant pastel that works well for avatars.
+  const hct = Hct.from(hue, 40, 70);
+  return hexFromArgb(hct.toInt());
 }
 
 export function getInitials(name: string): string {

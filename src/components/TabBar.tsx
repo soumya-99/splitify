@@ -74,7 +74,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({ state, navigation }) => {
       </View>
 
       {/* Tab bar */}
-      <View style={[styles.container, shadows.md, { backgroundColor: colors.surface }]}>
+      <View style={[styles.container, { backgroundColor: colors.surface }]}>
         {/* Sliding Indicator Background */}
         <Animated.View style={[styles.indicatorContainer, { width: tabWidth }, indicatorStyle]}>
           <View style={[styles.activePill, { backgroundColor: TAB_COLORS[state.index] + '15' }]} />
