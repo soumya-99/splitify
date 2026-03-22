@@ -9,7 +9,7 @@ export function getAvatarColor(name: string): string {
 
   // HCT arguments (Hue, Chroma, Tone).
   // Tone 75 and Chroma 45 produces a nice Material You vibrant pastel that works well for avatars.
-  const hct = Hct.from(hue, 40, 70);
+  const hct = Hct.from(hue, 45, 75);
   return hexFromArgb(hct.toInt());
 }
 

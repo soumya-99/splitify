@@ -8,6 +8,9 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "prebuild": "expo prebuild",
+    "prebuild:clean": "expo prebuild --clean",
+    "build:apk": "react-native run-android --mode=release",
     "lint": "expo lint",
     "prepare": "husky"
   },
