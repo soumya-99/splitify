@@ -45,6 +45,7 @@ export default function AddExpenseScreen() {
   const [selectedMembers, setSelectedMembers] = useState<string[]>(
     group?.members.map((m) => m.id) ?? []
   );
+  const [customAmounts, setCustomAmounts] = useState<Record<string, string>>({});
   const [showPayerPicker, setShowPayerPicker] = useState(false);
 
   const payer = group?.members.find((m) => m.id === paidById);
@@ -70,7 +71,48 @@ export default function AddExpenseScreen() {
       return;
     }
 
-    addExpense(groupId!, description.trim(), parsedAmount, paidById, splitType, selectedMembers);
+    let customSplits;
+    if (splitType !== 'equal') {
+      let totalAssigned = 0;
+      customSplits = selectedMembers.map((memberId) => {
+        const val = parseFloat(customAmounts[memberId] || '0');
+        let assignedAmount = 0;
+        if (splitType === 'percentage') {
+          totalAssigned += val;
+          assignedAmount = (parsedAmount * val) / 100;
+        } else if (splitType === 'exact') {
+          totalAssigned += val;
+          assignedAmount = val;
+        }
+        return {
+          memberId,
+          amount: assignedAmount,
+          percentage: splitType === 'percentage' ? val : undefined,
+        };
+      });
+
+      if (splitType === 'percentage' && Math.abs(totalAssigned - 100) > 0.01) {
+        Alert.alert('Error', `Percentages must add up to 100%. Current total: ${totalAssigned}%`);
+        return;
+      }
+      if (splitType === 'exact' && Math.abs(totalAssigned - parsedAmount) > 0.01) {
+        Alert.alert(
+          'Error',
+          `Exact amounts must add up to the total amount. Current total: ${totalAssigned}`
+        );
+        return;
+      }
+    }
+
+    addExpense(
+      groupId!,
+      description.trim(),
+      parsedAmount,
+      paidById,
+      splitType,
+      selectedMembers,
+      customSplits
+    );
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     router.back();
   };
@@ -254,6 +296,34 @@ export default function AddExpenseScreen() {
                   {perPersonAmount.toFixed(2)}
                 </Text>
               )}
+              {isSelected && splitType !== 'equal' && (
+                <View style={styles.customInputContainer}>
+                  {splitType === 'exact' && (
+                    <Text style={[styles.currencyPrefix, { color: colors.text }]}>
+                      {group.currency}
+                    </Text>
+                  )}
+                  <TextInput
+                    style={[
+                      styles.customAmountInput,
+                      {
+                        backgroundColor: colors.background,
+                        color: colors.text,
+                        borderColor: colors.border,
+                      },
+                    ]}
+                    value={customAmounts[member.id] || ''}
+                    onChangeText={(val) => setCustomAmounts({ ...customAmounts, [member.id]: val })}
+                    placeholder="0"
+                    placeholderTextColor={colors.textTertiary}
+                    keyboardType="decimal-pad"
+                    maxLength={splitType === 'percentage' ? 3 : undefined}
+                  />
+                  {splitType === 'percentage' && (
+                    <Text style={[styles.percentSuffix, { color: colors.text }]}>%</Text>
+                  )}
+                </View>
+              )}
             </Pressable>
           );
         })}
@@ -377,6 +447,29 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   splitAmount: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  customInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  currencyPrefix: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginRight: 4,
+  },
+  percentSuffix: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 4,
+  },
+  customAmountInput: {
+    width: 60,
+    borderRadius: 8,
+    borderWidth: 1,
+    textAlign: 'center',
+    textAlignVertical: 'center',
     fontSize: 14,
     fontWeight: '600',
   },
