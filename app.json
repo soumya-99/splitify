@@ -9,7 +9,27 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Splitify Group File",
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Owner",
+            "LSItemContentTypes": ["com.thecolorsofvoid.splitify.spt"]
+          }
+        ],
+        "UTExportedTypeDeclarations": [
+          {
+            "UTTypeConformsTo": ["public.data"],
+            "UTTypeDescription": "Splitify Group File",
+            "UTTypeIdentifier": "com.thecolorsofvoid.splitify.spt",
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["spt"]
+            }
+          }
+        ]
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +38,19 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.thecolorsofvoid.splitify"
+      "package": "com.thecolorsofvoid.splitify",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            { "scheme": "file", "pathPattern": ".*\\.spt", "mimeType": "*/*" },
+            { "scheme": "content", "pathPattern": ".*\\.spt", "mimeType": "*/*" },
+            { "scheme": "file", "pathPattern": ".*\\.spt" },
+            { "scheme": "content", "pathPattern": ".*\\.spt" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "output": "static",

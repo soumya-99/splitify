@@ -66,6 +66,10 @@ export default function AddExpenseScreen() {
       Alert.alert('Error', 'Please enter a valid amount.');
       return;
     }
+    if (parsedAmount > 10000000) {
+      Alert.alert('Error', 'Amount is too large to realistically split.');
+      return;
+    }
     if (selectedMembers.length === 0) {
       Alert.alert('Error', 'Select at least one member to split with.');
       return;

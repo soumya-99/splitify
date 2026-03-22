@@ -36,6 +36,8 @@ jobs:
 
       - name: Build Release APK via Gradle
         # Native gradlew executes significantly faster locally and requires no EAS configs
+        env:
+          NODE_OPTIONS: "--max-old-space-size=4096"
         run: cd android && ./gradlew assembleRelease
 
       - name: Upload APK artifact

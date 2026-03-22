@@ -53,6 +53,13 @@ export default function SettleUpScreen() {
       Alert.alert('Error', 'Please enter a valid amount.');
       return;
     }
+    if (settleAmount > amount) {
+      Alert.alert(
+        'Error',
+        `You cannot settle more than the owed amount (${formatCurrencyPlain(amount, group.currency)}).`
+      );
+      return;
+    }
 
     addSettlement(groupId!, fromId, toId, settleAmount);
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
