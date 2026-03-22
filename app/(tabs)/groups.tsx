@@ -35,6 +35,19 @@ export default function GroupsScreen() {
 
     const editGroup = () => router.push(`/modals/edit-group?groupId=${group.id}`);
     const deleteGroup = () => {
+      // Check if group has unsettled balances
+      const groupExpenses = expenses.filter((e) => e.groupId === group.id);
+      const groupSettlements = settlements.filter((s) => s.groupId === group.id);
+      const balances = calculateBalances(groupExpenses, groupSettlements);
+      if (balances.length > 0) {
+        Alert.alert(
+          'Cannot Delete',
+          'This group still has unsettled debts. Please settle everyone up before deleting it.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       Alert.alert(
         'Delete Group',
         `Are you sure you want to delete "${group.name}"? This cannot be undone.`,

@@ -46,6 +46,19 @@ export default function HomeScreen() {
 
     const editGroup = () => router.push(`/modals/edit-group?groupId=${group.id}`);
     const deleteGroup = () => {
+      // Check if group has unsettled balances
+      const groupExpenses = expenses.filter((e) => e.groupId === group.id);
+      const groupSettlements = settlements.filter((s) => s.groupId === group.id);
+      const balances = calculateBalances(groupExpenses, groupSettlements);
+      if (balances.length > 0) {
+        Alert.alert(
+          'Cannot Delete',
+          'This group still has unsettled debts. Please settle everyone up before deleting it.',
+          [{ text: 'OK' }]
+        );
+        return;
+      }
+
       Alert.alert(
         'Delete Group',
         `Are you sure you want to delete "${group.name}"? This cannot be undone.`,
@@ -197,12 +210,15 @@ export default function HomeScreen() {
         }
         renderItem={({ item }) => {
           const group = groups.find((g) => g.id === item.groupId);
+          if (!group) return null;
+
           if (item._type === 'settlement') {
-            const from = group?.members.find((m) => m.id === item.fromMemberId);
-            const to = group?.members.find((m) => m.id === item.toMemberId);
+            const from = group.members.find((m) => m.id === item.fromMemberId);
+            const to = group.members.find((m) => m.id === item.toMemberId);
             return (
-              <View
-                style={[
+              <Pressable
+                onPress={() => router.push(`/group/${group.id}`)}
+                style={({ pressed }) => [
                   styles.expenseWrap,
                   {
                     backgroundColor: colors.surface,
@@ -211,6 +227,7 @@ export default function HomeScreen() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     gap: 12,
+                    opacity: pressed ? 0.7 : 1,
                   },
                 ]}
               >
@@ -231,23 +248,22 @@ export default function HomeScreen() {
                     {from?.name} paid {to?.name}
                   </Text>
                   <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>
-                    {group?.name} • {new Date(item.createdAt).toLocaleDateString()}
+                    {group.name} • {new Date(item.createdAt).toLocaleDateString()}
                   </Text>
                 </View>
                 <Text style={{ fontSize: 16, fontWeight: '600', color: colors.primary }}>
-                  {formatCurrencyPlain(item.amount, group?.currency ?? '₹')}
+                  {formatCurrencyPlain(item.amount, group.currency)}
                 </Text>
-              </View>
+              </Pressable>
             );
           }
           return (
-            <View style={styles.expenseWrap}>
-              <ExpenseCard
-                expense={item}
-                members={group?.members ?? []}
-                currency={group?.currency ?? '₹'}
-              />
-            </View>
+            <Pressable
+              onPress={() => router.push(`/group/${group.id}`)}
+              style={({ pressed }) => [styles.expenseWrap, { opacity: pressed ? 0.7 : 1 }]}
+            >
+              <ExpenseCard expense={item} members={group.members} currency={group.currency} />
+            </Pressable>
           );
         }}
         ListFooterComponent={<View style={{ height: 120 }} />}

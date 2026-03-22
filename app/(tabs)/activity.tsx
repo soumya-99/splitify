@@ -1,15 +1,17 @@
-import React from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Activity as ActivityIcon } from 'lucide-react-native';
-import { useTheme } from '@/src/hooks/useTheme';
-import { useGroupStore } from '@/src/store/useGroupStore';
-import { useExpenseStore } from '@/src/store/useExpenseStore';
-import ExpenseCard from '@/src/components/ExpenseCard';
 import EmptyState from '@/src/components/EmptyState';
+import ExpenseCard from '@/src/components/ExpenseCard';
 import { SCREEN_PADDING } from '@/src/constants/layout';
+import { useTheme } from '@/src/hooks/useTheme';
+import { useExpenseStore } from '@/src/store/useExpenseStore';
+import { useGroupStore } from '@/src/store/useGroupStore';
+import { useRouter } from 'expo-router';
+import { Activity as ActivityIcon } from 'lucide-react-native';
+import React from 'react';
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function ActivityScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const groups = useGroupStore((s) => s.groups);
@@ -42,13 +44,20 @@ export default function ActivityScreen() {
         renderItem={({ item }) => {
           const group = groups.find((g) => g.id === item.groupId);
           return (
-            <View style={styles.cardWrap}>
+            <Pressable
+              onPress={() => {
+                if (group) {
+                  router.push(`/group/${group.id}`);
+                }
+              }}
+              style={({ pressed }) => [styles.cardWrap, { opacity: pressed ? 0.7 : 1 }]}
+            >
               <ExpenseCard
                 expense={item}
                 members={group?.members ?? []}
                 currency={group?.currency ?? '₹'}
               />
-            </View>
+            </Pressable>
           );
         }}
         ListFooterComponent={<View style={{ height: 120 }} />}
