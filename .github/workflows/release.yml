@@ -2,7 +2,8 @@ name: Build & Release APK
 
 on:
   push:
-    tags: ['v*']
+    branches:
+      - main
 
 jobs:
   build:
@@ -25,7 +26,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17' # React Native requires Java 17
+          java-version: '17' # React Native 0.73+ requires Java 17
 
       - name: Install NPM Dependencies
         run: npm ci
@@ -34,7 +35,7 @@ jobs:
         run: npx expo prebuild --platform android --clean
 
       - name: Build Release APK via Gradle
-        # Native gradlew executes significantly faster locally and requires no EAS configs or tokens
+        # Native gradlew executes significantly faster locally and requires no EAS configs
         run: cd android && ./gradlew assembleRelease
 
       - name: Upload APK artifact
@@ -47,6 +48,8 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: "v1.0.${{ github.run_number }}"
+          name: "Release v1.0.${{ github.run_number }}"
           files: android/app/build/outputs/apk/release/app-release.apk
           generate_release_notes: true
           fail_on_unmatched_files: true
